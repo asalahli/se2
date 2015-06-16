@@ -1,0 +1,23 @@
+extends ./base.jade
+
+block content
+    h3= deliverable.name
+    p
+        if files.length !== 0
+            p
+                i Submitted files
+
+            ul
+                for file in files
+                    li
+                        a(href='/download/'+deliverable.name+'/'+file)= file
+        else
+            i Not submitted yet
+
+    if uploaded
+        p
+            i Upload successful
+
+    form(method='POST',enctype='multipart/form-data')
+        input(type='file', name='file', accept='.zip')
+        input(type='submit')

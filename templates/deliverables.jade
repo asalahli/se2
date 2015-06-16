@@ -1,0 +1,14 @@
+extends ./base.jade
+
+block content
+    ul
+        for deliverable in deliverables
+            li
+                h3= deliverable.name
+                p= deliverable.deadline.toDateString()
+                a(href='/deliverable/' + deliverable.name + '/submission')
+                    if deliverable.is_submitted
+                        | Submitted
+                    else
+                        | Not submitted
+
