@@ -1,6 +1,8 @@
-var sanitize = require('sanitize-filename');
 var express = require('express');
 var app = express();
+
+var auth = require('./auth.js');
+var settings = require('./settings.js');
 
 
 // Since this doesn't change, we can just load it once
@@ -15,7 +17,7 @@ var getDeliverable = function(name) {
         return deliverables[i];
     else
         return undefined;
-}
+};
 
 
 var getUploadLocation = function(deliverable, userid) {
@@ -27,7 +29,7 @@ var getUploadLocation = function(deliverable, userid) {
         location +=  userid + '/';
 
     return location;
-}
+};
 
 
 // Template engine
@@ -43,13 +45,41 @@ app.use(multer({
 }));
 
 
+// Database
+var sqlite3 = require('sqlite3').verbose();
+db = new sqlite3.Database(__dirname + settings.DB_NAME);
+
+
 // Static files
 app.use('/static', express.static('static'));
 
 
 // Routing
-app.get('/', function(req, res) {
-    res.render('home');
+app.get('/', auth.loginRequired, function(req, res) {
+    console.log('User: ' + req.user.userid);
+    res.render('home', { user: req.user });
+});
+
+
+app.get('/login', function(req, res) {
+    res.render('login', { client_id: settings.GITHUB_CLIENT_ID });
+});
+
+
+app.get('/after-login', function(req, res) {
+    var session_code = req.query.code;
+
+    auth.getAccessToken(session_code, function(access_token, scope) {
+        res.cookie('access_token', access_token);
+        res.redirect('/');
+    });
+
+});
+
+
+app.get('/logout', function(req, res) {
+    res.cookie('access_token', '');
+    res.redirect('/');
 });
 
 
