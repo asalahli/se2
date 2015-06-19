@@ -1,0 +1,49 @@
+{
+  "Design Impressions": {
+    "weight": 0,
+
+    "Activity": {
+      "closes": "January 6, 2015"
+    }
+  },
+
+  "Project Groups": {
+    "weight": 0,
+
+    "Submission": {
+      "closes": "January 15, 2015"
+    }
+  },
+
+  "D1: Proposal Presentations": {
+    "weight": 5,
+
+    "Document": {
+      "closes": "January 26, 2015"
+    },
+
+    "Presentation": {
+      "closes": "January 27, 2015"
+    }
+  },
+
+  "D2: Architecture Activity": {
+    "weight": 0,
+
+    "Presentation": {
+      "closes": "February 12, 2015"
+    }
+  },
+
+  "D3: Prototype Demo": {
+    "weight": 5,
+
+    "Document": {
+      "closes": "March 2, 2015"
+    },
+
+    "Presentation": {
+      "closes": "March 5, 2015"
+    }
+  }
+}

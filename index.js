@@ -3,21 +3,7 @@ var app = express();
 
 var auth = require('./auth.js');
 var settings = require('./settings.js');
-
-
-// Since this doesn't change, we can just load it once
 var deliverables = require('./deliverables.js');
-
-var getDeliverable = function(name) {
-    for (var i=0; i<deliverables.length; i++)
-        if (deliverables[i].name == name)
-            break;
-
-    if (i < deliverables.length)
-        return deliverables[i];
-    else
-        return undefined;
-};
 
 
 var getUploadLocation = function(deliverable, userid) {
@@ -26,7 +12,7 @@ var getUploadLocation = function(deliverable, userid) {
     var location = __dirname + '/uploads/' + deliverable.replace(re, '') + '/';
 
     if (userid !== '')
-        location +=  userid + '/';
+        location +=  userid + '.pdf';
 
     return location;
 };
@@ -57,7 +43,7 @@ app.use('/static', express.static('static'));
 // Routing
 app.get('/', auth.loginRequired, function(req, res) {
     console.log('User: ' + req.user.userid);
-    res.render('home', { user: req.user });
+    res.render('home');
 });
 
 
@@ -83,75 +69,82 @@ app.get('/logout', function(req, res) {
 });
 
 
-app.get('/deliverables', function(req, res) {
-    var userid = 'asalahli';
+app.get('/deliverables', auth.loginRequired, function(req, res) {
+    var userid = req.user.userid;
 
-    var delis = [];
+    deliverables.getAllDeliverables(function(deliverables) {
+        for (var i=0; i<deliverables.length; i++) {
+            deliverables[i].is_submitted = fs.existsSync(getUploadLocation(deliverables[i].name, userid));
+        }
 
-    for (var i=0; i<deliverables.length; i++) {
-        delis.push({
-            name: deliverables[i].name,
-            deadline: deliverables[i].deadline,
-            is_submitted: fs.existsSync(getUploadLocation(deliverables[i].name, userid)),
+        res.render('deliverables', { deliverables: deliverables });
+    });
+});
+
+app.get('/deliverable/:name/submission', auth.loginRequired, function(req, res) {
+    deliverables.getDeliverable(req.params.name, function(deliverable) {
+        var userid = req.user.userid;
+        var dest = getUploadLocation(req.params.name, userid);
+
+        var submission_info = {
+            deliverable: deliverable,
+            is_submitted: fs.existsSync(dest),
+        };
+
+        res.render('submission', submission_info);
+    });
+});
+
+app.post('/deliverable/:name/submission', auth.loginRequired, function(req, res) {
+    deliverables.getDeliverable(req.params.name, function(deliverable) {
+        var userid = req.user.userid;
+        var dest = getUploadLocation(req.params.name, '');
+
+        if (!fs.existsSync(dest))
+            fs.mkdirSync(dest);
+
+        var dest = getUploadLocation(req.params.name, userid);
+
+        fs.renameSync(req.files.file.path, dest);
+
+        var submission_info = {
+            deliverable: deliverable,
+            is_submitted: fs.existsSync(dest),
+            uploaded: true,
+        };
+
+        res.render('submission', submission_info);
+    });
+});
+
+app.get('/download/:deliverable/:userid', auth.loginRequired, function(req, res) {
+    var userid = req.user.userid;
+
+    if (userid !== req.params.userid) {
+        res.sendStatus(403);
+        return;
+    }
+
+    var dest = getUploadLocation(req.params.deliverable, req.params.userid);
+    var filename = req.params.userid + '_' + req.params.deliverable + '.pdf';
+    res.download(dest, filename);
+});
+
+app.route('/admin/deliverables')
+
+    .get(function(req, res) {
+       deliverables.getAllDeliverables(function(deliverables){
+           res.render('admin/deliverables', { deliverables: deliverables });
+       });
+    })
+
+    .post(function(req, res) {
+        json_data = JSON.parse(fs.readFileSync(req.files.json_file.path));
+
+        deliverables.importFromJson(json_data, function(){
+            res.redirect('/admin/deliverables');
         });
-    }
-
-    res.render('deliverables', { deliverables: delis });
-});
-
-app.get('/deliverable/:name/submission', function(req, res) {
-    var deliverable = getDeliverable(req.params.name);
-
-    var userid = 'asalahli';
-    var filename = 'undefined' + '/' + userid + '.zip';
-
-    var dest = getUploadLocation(req.params.name, userid);
-
-    var files = new Array();
-
-    if (fs.existsSync(dest)) {
-        files = fs.readdirSync(dest);
-    }
-
-    var submission_info = {
-        deliverable: deliverable,
-        files: files,
-    };
-
-    res.render('submission', submission_info);
-});
-
-app.post('/deliverable/:name/submission', function(req, res) {
-    var deliverable = getDeliverable(req.params.name);
-
-    var userid = 'asalahli';
-
-    var dest = getUploadLocation(req.params.name, '');
-
-    if (!fs.existsSync(dest))
-        fs.mkdirSync(dest);
-
-    dest += userid + '/';
-
-    if (!fs.existsSync(dest))
-        fs.mkdirSync(dest);
-
-    fs.renameSync(req.files.file.path, dest + req.files.file.originalname);
-
-    var files = new Array();
-
-    if (fs.existsSync(dest)) {
-        files = fs.readdirSync(dest);
-    }
-
-    var submission_info = {
-        deliverable: deliverable,
-        files: files,
-        uploaded: true,
-    };
-
-    res.render('submission', submission_info);
-});
+    });
 
 // Server
 var server = app.listen(3000, function() {

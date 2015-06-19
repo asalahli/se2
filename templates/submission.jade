@@ -1,16 +1,22 @@
 extends ./base.jade
 
 block content
-    h3= deliverable.name
-    p
-        if files.length !== 0
-            p
-                i Submitted files
+    h3= deliverable.name + ' - '
+        if deliverable.weight == 0
+            span Pass/Fail
+        else
+            span= deliverable.weight + '%'
 
-            ul
-                for file in files
-                    li
-                        a(href='/download/'+deliverable.name+'/'+file)= file
+    for component in deliverable.components
+        if component.name == 'Document'
+            p= component.name
+            p Opens:&nbsp;
+                i= component.open_date.toDateString()
+            p Closes:&nbsp;
+                i= component.close_date.toDateString()
+    p
+        if is_submitted
+            a(href='/download/'+deliverable.name+'/'+user.userid) Download
         else
             i Not submitted yet
 
@@ -19,5 +25,5 @@ block content
             i Upload successful
 
     form(method='POST',enctype='multipart/form-data')
-        input(type='file', name='file', accept='.zip')
+        input(type='file', name='file', accept='.pdf')
         input(type='submit')

@@ -4,11 +4,23 @@ block content
     ul
         for deliverable in deliverables
             li
-                h3= deliverable.name
-                p= deliverable.deadline.toDateString()
-                a(href='/deliverable/' + deliverable.name + '/submission')
-                    if deliverable.is_submitted
-                        | Submitted
+                h3= deliverable.name + ' - '
+                    if deliverable.weight == 0
+                        span Pass/Fail
                     else
-                        | Not submitted
+                        span= deliverable.weight + '%'
+
+                ul
+                    for component in deliverable.components
+                        h4= component.name
+                        p Opens:&nbsp;
+                            i= component.open_date.toDateString()
+                        p Closes:&nbsp;
+                            i= component.close_date.toDateString()
+                        if component.name == 'Document'
+                            a(href='/deliverable/' + deliverable.name + '/submission')
+                                if deliverable.is_submitted
+                                    | Submitted
+                                else
+                                    | Not submitted
 

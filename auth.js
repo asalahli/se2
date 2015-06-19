@@ -99,6 +99,7 @@
                     }
 
                     req.user = user;
+                    res.locals.user = user;
                     next();
                 });
             }
