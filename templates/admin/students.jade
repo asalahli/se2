@@ -1,0 +1,30 @@
+doctype html
+html
+    head
+        meta(charset="utf-8")
+        title SE2 Software Design and Architecture
+        link(type='text/css', href='/static/css/normalize.css')
+    body
+        main
+            table(border='1', cellpadding='4')
+                thead
+                    tr
+                        th First name
+                        th Last name
+                        th User id
+                        th Student number
+                        th Github id
+                    for student in students
+                        tr
+                            td= student.firstname
+                            td= student.lastname
+                            td= student.userid
+                            td= student.student_number
+                            td= student.github_id
+            br
+            p Import from csv file
+            form(method='POST', enctype='multipart/form-data')
+                p
+                    input(type='file', name='csv_file', accept='. csv')
+                p
+                    input(type='submit', value='Import')

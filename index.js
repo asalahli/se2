@@ -1,9 +1,11 @@
 var express = require('express');
 var app = express();
 
+var CSV = require('./csv.js');
 var auth = require('./auth.js');
 var settings = require('./settings.js');
 var deliverables = require('./deliverables.js');
+var students = require('./students.js');
 
 
 var getUploadLocation = function(deliverable, userid) {
@@ -47,26 +49,56 @@ app.get('/', auth.loginRequired, function(req, res) {
 });
 
 
-app.get('/login', function(req, res) {
-    res.render('login', { client_id: settings.GITHUB_CLIENT_ID });
-});
+app.route('/login')
 
-
-app.get('/after-login', function(req, res) {
-    var session_code = req.query.code;
-
-    auth.getAccessToken(session_code, function(access_token, scope) {
-        res.cookie('access_token', access_token);
-        res.redirect('/');
+    .get(function(req, res) {
+        res.render('login', { client_id: settings.GITHUB_CLIENT_ID });
     });
 
-});
+
+app.route('/after-login')
+
+    .get(function(req, res) {
+        var session_code = req.query.code;
+
+        auth.getAccessToken(session_code, function(access_token, scope) {
+            res.cookie('access_token', access_token);
+            res.redirect('/');
+        });
+    });
 
 
-app.get('/logout', function(req, res) {
-    res.cookie('access_token', '');
-    res.redirect('/');
-});
+app.route('/register')
+
+    .get(function(req, res){
+        var github_id = req.query.github;
+
+        res.render('register', { github_id: github_id });
+    })
+
+    .post(function(req, res){
+        var github_id = req.body.github_id;
+        var userid = req.body.userid;
+        var student_number = req.body.student_number;
+
+        auth.assignGithubId(
+            userid, student_number, github_id,
+            function() {
+                res.redirect('/');
+            },
+            function(){
+                res.render('register', { github_id: github_id, error: true });
+            }
+        );
+    });
+
+
+app.route('/logout')
+
+    .get(function(req, res) {
+        res.cookie('access_token', '');
+        res.redirect('/');
+    });
 
 
 app.get('/deliverables', auth.loginRequired, function(req, res) {
@@ -133,7 +165,7 @@ app.get('/download/:deliverable/:userid', auth.loginRequired, function(req, res)
 app.route('/admin/deliverables')
 
     .get(function(req, res) {
-       deliverables.getAllDeliverables(function(deliverables){
+       deliverables.getAllDeliverables(function(deliverables) {
            res.render('admin/deliverables', { deliverables: deliverables });
        });
     })
@@ -143,6 +175,25 @@ app.route('/admin/deliverables')
 
         deliverables.importFromJson(json_data, function(){
             res.redirect('/admin/deliverables');
+        });
+    });
+
+
+app.route('/admin/students')
+
+    .get(function(req, res) {
+        students.getAllStudents(function(students) {
+            res.render('admin/students', { students: students });
+        });
+    })
+
+    .post(function(req, res) {
+        csv_data = CSV.parse(fs.readFileSync(req.files.csv_file.path, 'utf8'));
+
+        console.log(csv_data);
+
+        students.importFromCsv(csv_data, function() {
+            res.redirect('/admin/students');
         });
     });
 

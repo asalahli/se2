@@ -51,7 +51,7 @@
     };
 
     /**
-     * @param deliverables  {json object}
+     * @param deliverables  {json}
      * @param onSuccess     {callback}
      * @param onError       {callback}
      */

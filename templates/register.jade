@@ -1,0 +1,29 @@
+doctype html
+html
+    head
+        meta(charset="utf-8")
+        title SE2 Software Design and Architecture
+        link(type='text/css', href='/static/css/normalize.css')
+    body
+        header
+            h1 SE2 Software Design and Architecture
+        main
+            p Github username:
+                i= github_id
+                | &nbsp;
+                a(href='/logout') (not you?)
+
+            h3 Sign up
+
+            if error
+                p Invalid userid/student number.
+
+            form(method='POST', enctype='multipart/form-data')
+                p
+                    input(type='hidden', name='github_id', value=github_id)
+                p
+                    input(type='text', name='userid' placeholder='userid')
+                p
+                    input(type='password', name='student_number' placeholder='student number')
+                p
+                    input(type='submit', value='Sign up')

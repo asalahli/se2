@@ -94,7 +94,7 @@
                 getUserByGithubId(data.login, function(user) {
                     if (!user) {
                         // No user associated with this github id
-                        res.redirect('/login');
+                        res.redirect('/register?github='+data.login);
                         return;
                     }
 
@@ -104,6 +104,25 @@
                 });
             }
         );
+    };
+
+
+    var assignGithubId = function(userid, student_number, github_id, onSuccess, onError) {
+        var query = 'SELECT rowid FROM auth WHERE userid=? and student_number=? and github_id=""';
+
+        db.get(query, [userid, student_number], function(error, row) {
+            if (error) {
+                console.log(error);
+            }
+            else if (!row) {
+                onError();
+            }
+            else {
+                db.run('UPDATE auth SET github_id=? WHERE rowid=?', [github_id, row.rowid], function(){
+                    onSuccess();
+                });
+            }
+        });
     };
 
 
@@ -126,6 +145,7 @@
     };
 
     module.exports.getAccessToken = getAccessToken;
+    module.exports.assignGithubId = assignGithubId;
     module.exports.loginRequired = loginRequired;
 
 })();

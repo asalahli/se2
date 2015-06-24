@@ -1,1 +1,19 @@
-BEGIN TRANSACTION;	CREATE TABLE `students` (		`full_name`  VARCHAR NOT NULL,		`user_id`    VARCHAR NOT NULL UNIQUE,		`group_name` VARCHAR,		PRIMARY KEY(user_id)	);	CREATE TABLE `groups` (		`name` VARCHAR NOT NULL	);	CREATE TABLE `grades` (		`entity`      VARCHAR NOT NULL,		`deliverable` VARCHAR NOT NULL,		`grade`       REAL NOT NULL	);	CREATE TABLE `deliverables` (		`name`        VARCHAR NOT NULL UNIQUE,		`deadline`    DATETIME NOT NULL,		`marks_total` REAL NOT NULL,		`weight`      REAL NOT NULL,		`is_group`    BOOLEAN NOT NULL,		PRIMARY KEY(name)	);COMMIT;
+BEGIN TRANSACTION;
+CREATE TABLE "deliverables" (
+	`name`	TEXT NOT NULL,
+	`weight`	REAL NOT NULL DEFAULT 0
+);
+CREATE TABLE "deliverable_components" (
+	`deliverable`	TEXT NOT NULL,
+	`name`	TEXT NOT NULL,
+	`open_date`	INTEGER NOT NULL,
+	`close_date`	INTEGER NOT NULL
+);
+CREATE TABLE "auth" (
+	`firstname`	TEXT NOT NULL,
+	`lastname`	TEXT NOT NULL,
+	`userid`	TEXT NOT NULL UNIQUE,
+	`student_number`	TEXT NOT NULL UNIQUE,
+	`github_id`	TEXT NOT NULL DEFAULT '' UNIQUE
+);
+COMMIT;
