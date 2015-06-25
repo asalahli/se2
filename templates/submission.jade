@@ -1,5 +1,8 @@
 extends ./base.jade
 
+block override
+    -var page = 'Deliverables';
+
 block content
     h3= deliverable.name + ' - '
         if deliverable.weight == 0

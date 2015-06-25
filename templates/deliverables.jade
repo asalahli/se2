@@ -1,28 +1,31 @@
 extends ./base.jade
 
+block override
+    -var page = 'Deliverables';
+
 block content
-    ul
+    ul.list-group
         for deliverable in deliverables
-            li
-                h3= deliverable.name + ' - '
+            li.list-group-item
+                h4.list-group-item-heading= deliverable.name + ' - '
                     if deliverable.weight == 0
                         span Pass/Fail
                     else
-                        span= deliverable.weight + '%'
+                        span= (deliverable.weight * 100) + '%'
+                p.list-group-item-text
+                    p Opens:&nbsp;
+                        i= deliverable.open_date.toDateString()
+                    p Closes:&nbsp;
+                        i= deliverable.close_date.toDateString()
 
-                p Opens:&nbsp;
-                    i= deliverable.open_date.toDateString()
-                p Closes:&nbsp;
-                    i= deliverable.close_date.toDateString()
-
-                ul
-                    for component in deliverable.components
-                        li
-                            h4= component.type
-                            if component.type == 'document' || component.type == 'link' || component.type == 'text'
-                                a(href='/deliverable/' + deliverable.shortname + '/submission')
-                                    if deliverable.is_submitted
-                                        | Submitted
-                                    else
-                                        | Not submitted
+                    ul
+                        for component in deliverable.components
+                            li
+                                h4= component.type
+                                if component.type == 'document' || component.type == 'link' || component.type == 'text'
+                                    a(href='/deliverable/' + deliverable.shortname + '/submission')
+                                        if deliverable.is_submitted
+                                            | Submitted
+                                        else
+                                            | Not submitted
 
