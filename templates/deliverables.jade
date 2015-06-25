@@ -10,17 +10,19 @@ block content
                     else
                         span= deliverable.weight + '%'
 
+                p Opens:&nbsp;
+                    i= deliverable.open_date.toDateString()
+                p Closes:&nbsp;
+                    i= deliverable.close_date.toDateString()
+
                 ul
                     for component in deliverable.components
-                        h4= component.name
-                        p Opens:&nbsp;
-                            i= component.open_date.toDateString()
-                        p Closes:&nbsp;
-                            i= component.close_date.toDateString()
-                        if component.name == 'Document'
-                            a(href='/deliverable/' + deliverable.name + '/submission')
-                                if deliverable.is_submitted
-                                    | Submitted
-                                else
-                                    | Not submitted
+                        li
+                            h4= component.type
+                            if component.type == 'document' || component.type == 'link' || component.type == 'text'
+                                a(href='/deliverable/' + deliverable.shortname + '/submission')
+                                    if deliverable.is_submitted
+                                        | Submitted
+                                    else
+                                        | Not submitted
 

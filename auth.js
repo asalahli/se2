@@ -127,7 +127,7 @@
 
 
     var getUserByGithubId = function(githubId, onSuccess, onError) {
-        var query = 'SELECT rowid, name, userid, student_number '
+        var query = 'SELECT rowid, firstname, lastname, userid, student_number '
             + 'FROM auth '
             + 'WHERE github_id="'+githubId+'";';
 

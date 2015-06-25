@@ -106,7 +106,7 @@ app.get('/deliverables', auth.loginRequired, function(req, res) {
 
     deliverables.getAllDeliverables(function(deliverables) {
         for (var i=0; i<deliverables.length; i++) {
-            deliverables[i].is_submitted = fs.existsSync(getUploadLocation(deliverables[i].name, userid));
+            deliverables[i].is_submitted = fs.existsSync(getUploadLocation(deliverables[i].shortname, userid));
         }
 
         res.render('deliverables', { deliverables: deliverables });

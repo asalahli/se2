@@ -9,21 +9,31 @@ html
             table(border='1', cellpadding='4')
                 thead
                     tr
-                        th Deliverable
+                        th Short name
+                        th Name
                         th Opens
                         th Closes
+                        th Weight
                     for deliverable in deliverables
                         tr
-                            td(colspan='3')= deliverable.name + ' - '
+                            td= deliverable.shortname
+                            td= deliverable.name
+                            td= deliverable.open_date.toDateString()
+                            td= deliverable.close_date.toDateString()
+                            td
                                 if deliverable.weight == 0
                                     span Pass/Fail
                                 else
-                                    span= deliverable.weight + '%'
+                                    span= deliverable.weight
+
                         for component in deliverable.components
                             tr
-                                td= component.name
-                                td= component.open_date.toDateString()
-                                td= component.close_date.toDateString()
+                                td(colspan='5') &nbsp;&nbsp;&nbsp;&nbsp;
+                                    span= component.type + ' - '
+                                        if component.weight == 0
+                                            i Pass/Fail
+                                        else
+                                            i= component.weight
 
             br
 

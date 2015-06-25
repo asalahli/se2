@@ -1,13 +1,15 @@
 BEGIN TRANSACTION;
 CREATE TABLE "deliverables" (
+	`shortname`	TEXT NOT NULL UNIQUE,
 	`name`	TEXT NOT NULL,
-	`weight`	REAL NOT NULL DEFAULT 0
+	`weight`	REAL NOT NULL DEFAULT 0,
+	`open_date`	INTEGER NOT NULL,
+	`close_date`	INTEGER NOT NULL
 );
 CREATE TABLE "deliverable_components" (
 	`deliverable`	TEXT NOT NULL,
-	`name`	TEXT NOT NULL,
-	`open_date`	INTEGER NOT NULL,
-	`close_date`	INTEGER NOT NULL
+	`type`	TEXT NOT NULL,
+	`weight`	REAL NOT NULL DEFAULT 0
 );
 CREATE TABLE "auth" (
 	`firstname`	TEXT NOT NULL,

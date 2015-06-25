@@ -5,18 +5,19 @@ block content
         if deliverable.weight == 0
             span Pass/Fail
         else
-            span= deliverable.weight + '%'
+            span= (deliverable.weight * 100) + '%'
+
+    p Opens:&nbsp;
+        i= deliverable.open_date.toDateString()
+    p Closes:&nbsp;
+        i= deliverable.close_date.toDateString()
 
     for component in deliverable.components
-        if component.name == 'Document'
-            p= component.name
-            p Opens:&nbsp;
-                i= component.open_date.toDateString()
-            p Closes:&nbsp;
-                i= component.close_date.toDateString()
+        if component.type == 'document'
+            p= component.type
     p
         if is_submitted
-            a(href='/download/'+deliverable.name+'/'+user.userid) Download
+            a(href='/download/'+deliverable.shortname+'/'+user.userid) Download
         else
             i Not submitted yet
 
