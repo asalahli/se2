@@ -43,12 +43,6 @@ app.use('/static', express.static('static'));
 
 
 // Routing
-app.get('/', auth.loginRequired, function(req, res) {
-    console.log('User: ' + req.user.userid);
-    res.render('home');
-});
-
-
 app.route('/login')
 
     .get(function(req, res) {
@@ -101,7 +95,7 @@ app.route('/logout')
     });
 
 
-app.get('/deliverables', auth.loginRequired, function(req, res) {
+app.get('/', auth.loginRequired, function(req, res) {
     var userid = req.user.userid;
 
     deliverables.getAllDeliverables(function(deliverables) {
@@ -109,7 +103,20 @@ app.get('/deliverables', auth.loginRequired, function(req, res) {
             deliverables[i].is_submitted = fs.existsSync(getUploadLocation(deliverables[i].shortname, userid));
         }
 
-        res.render('deliverables', { deliverables: deliverables });
+        res.render('home', { deliverables: deliverables });
+    });
+});
+
+app.get('/deliverable/:name/', auth.loginRequired, function(req, res) {
+    deliverables.getDeliverable(req.params.name, function(deliverable) {
+        var userid = req.user.userid;
+
+        var context = {
+            deliverable: deliverable,
+            target: deliverables.getTarget(deliverable, req.user),
+        };
+
+        res.render('deliverable', context);
     });
 });
 
@@ -198,7 +205,7 @@ app.route('/admin/students')
     });
 
 // Server
-var server = app.listen(3000, function() {
+var server = app.listen(settings.PORT, function() {
 
     var host = server.address().address;
     var port = server.address().port;

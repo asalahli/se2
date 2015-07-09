@@ -6,7 +6,7 @@
 (function(){
 
     var getAllStudents = function(onSuccess, onError) {
-        var query = 'SELECT rowid as id, firstname, lastname, userid, student_number, github_id FROM auth';
+        var query = 'SELECT rowid as id, firstname, lastname, userid, student_number, github_id, group_id FROM auth';
 
         db.all(query, function(error, students) {
             if (error) {

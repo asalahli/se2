@@ -1,4 +1,36 @@
 extends ./base.jade
 
+
 block content
-    p This is the home page. Not sure what goes here.
+    article.row
+        div.col-md-4
+            ul#deliverables.panel.panel-default.nav.nav-pills.nav-stacked
+                for deliverable in deliverables
+                    li(id=deliverable.shortname)
+                        a(onclick='deliverable("'+deliverable.shortname+'")')
+                            h4= deliverable.name + ' '
+                                if deliverable.weight == 0
+                                    small - Pass/Fail
+                                else
+                                    small= '- ' + (deliverable.weight * 100) + '%'
+                            div Opens:&nbsp;
+                                i= deliverable.open_date.toDateString()
+                            div Closes:&nbsp;
+                                i= deliverable.close_date.toDateString()
+
+                            //ul
+                            //    for component in deliverable.components
+                            //        li
+                            //            h4= component.type
+                            //            if component.type == 'document' || component.type == 'link' || component.type == 'text'
+                            //                a(href='/deliverable/' + deliverable.shortname + '/submission')
+                            //                    if deliverable.is_submitted
+                            //                        | Submitted
+                            //                    else
+                            //                        | Not submitted
+        div.col-md-8#content-area
+            div.panel.panel-primary
+                | To begin select a deliverable from the right
+
+block scripts
+    script(src='/static/js/deliverable.js')

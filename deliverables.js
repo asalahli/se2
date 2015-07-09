@@ -6,10 +6,17 @@
 (function() {
 
     var getAllDeliverables = function(onSuccess, onError) {
-        var deliverables_query = 'SELECT shortname, name, weight, open_date, close_date FROM deliverables;';
-        var components_query = 'SELECT deliverable, type, weight FROM deliverable_components;';
+        var deliverables_query = 'SELECT shortname, name, description, is_group, weight, open_date, close_date FROM deliverables;';
+        var components_query = 'SELECT rowid, deliverable, description, type, weight FROM deliverable_components;';
 
         db.all(deliverables_query, function(error, deliverables) {
+
+            if (error && onError) {
+                onError(error);
+            }
+            else if (error) {
+                console.log(error);
+            }
 
             for (var i=0; i<deliverables.length; i++) {
                 deliverables[i].open_date = new Date(deliverables[i].open_date);
@@ -18,6 +25,14 @@
             }
 
             db.all(components_query, function(error, components) {
+
+                if (error && onError) {
+                    onError(error);
+                }
+                else if (error) {
+                    console.log(error);
+                }
+
                 for (var i=0; i<components.length; i++) {
                     for (var j=0; j<deliverables.length; j++) {
                         if (deliverables[j].shortname === components[i].deliverable) {
@@ -33,8 +48,8 @@
     };
 
     var getDeliverable = function(name, onSuccess, onError) {
-        var deliverable_query = 'SELECT shortname, name, weight, open_date, close_date FROM deliverables WHERE shortname= ?;';
-        var components_query = 'SELECT deliverable, type, weight FROM deliverable_components WHERE deliverable = ?;';
+        var deliverable_query = 'SELECT shortname, name, description, is_group, weight, open_date, close_date FROM deliverables WHERE shortname= ?;';
+        var components_query = 'SELECT rowid, deliverable, description, type, weight FROM deliverable_components WHERE deliverable = ?;';
 
         db.get(deliverable_query, [name], function(error, deliverable) {
             deliverable.open_date = new Date(deliverable.open_date);
@@ -45,6 +60,15 @@
                 onSuccess(deliverable);
             });
         });
+    };
+
+    var getTarget = function(deliverable, user) {
+        if (deliverable.is_group == 1) {
+            return user.group_id;
+        }
+        else {
+            return user.userid;
+        }
     };
 
     /**
@@ -93,6 +117,7 @@
 
     module.exports.getDeliverable = getDeliverable;
     module.exports.getAllDeliverables = getAllDeliverables;
+    module.exports.getTarget = getTarget;
     module.exports.importFromJson = importFromJson;
 
 })();
