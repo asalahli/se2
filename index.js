@@ -20,6 +20,36 @@ var getUploadLocation = function(deliverable, userid) {
 };
 
 
+var getSubmissionInfo = function(student, deliverable, component) {
+    var submitter = deliverable.is_group ? student.group_id : student.userid;
+    var upload_location = [__dirname, 'uploads', deliverable.shortname, component.rowid.toString(), ''].join('/');
+    var file_type = component.type === 'document' ? '.pdf' : '.txt';
+
+    var filepath = upload_location + submitter + file_type;
+
+    if (!fs.existsSync(filepath))
+        return undefined;
+
+    var url, title;
+    var submitted_on = fs.statSync(filepath).mtime;
+
+    if (component.type === 'link') {
+        url = fs.readFileSync(filepath, 'utf8').trim();
+        title = url;
+    }
+    else {
+        url = ['', 'download', deliverable.shortname, component.rowid, submitter + file_type].join('/');
+        title = [submitter, deliverable.shortname, component.rowid + file_type].join('-');
+    }
+
+    return {
+        url: url,
+        title: title,
+        submitted_on: submitted_on
+    };
+};
+
+
 // Template engine
 app.set('view engine', 'jade');
 app.set('views', __dirname + '/templates');
@@ -95,77 +125,129 @@ app.route('/logout')
     });
 
 
+var getLetterGrade = function(p){
+    // Shamelessly stolen from Wikipedia
+    if (86 <= p && p <= 100) return 'A';
+    else if (73 <= p && p <= 85) return 'B';
+    else if (67 <= p && p <= 72) return 'C+';
+    else if (60 <= p && p <= 66) return 'C';
+    else if (50 <= p && p <= 59) return 'C-';
+    else if (0 <= p && p <= 49) return 'F';
+    else return '';
+};
+
+
 app.get('/', auth.loginRequired, function(req, res) {
-    var userid = req.user.userid;
-
     deliverables.getAllDeliverables(function(deliverables) {
-        for (var i=0; i<deliverables.length; i++) {
-            deliverables[i].is_submitted = fs.existsSync(getUploadLocation(deliverables[i].shortname, userid));
-        }
-
         res.render('home', { deliverables: deliverables });
     });
 });
 
-app.get('/deliverable/:name/', auth.loginRequired, function(req, res) {
-    deliverables.getDeliverable(req.params.name, function(deliverable) {
+
+app.route('/deliverable/:name/')
+
+    .get(auth.loginRequired, function(req, res) {
+        var student_query = [
+            'SELECT rowid, firstname, lastname, userid, student_number, group_id ',
+            'FROM auth ',
+            'WHERE userid = ? ',
+            ';'
+        ].join('');
+
+        var deliverable_query = [
+            'SELECT rowid, shortname, name, description, is_group, weight, open_date, close_date ',
+            'FROM deliverables ',
+            'WHERE shortname = ? ',
+            ';'
+        ].join('');
+
+        var components_query = [
+            'SELECT ',
+            '   deliverable_components.rowid, ',
+            '   deliverable_components.deliverable, ',
+            '   deliverable_components.description, ',
+            '   deliverable_components.type, ',
+            '   deliverable_components.weight, ',
+            '   grades.grade ',
+            'FROM deliverable_components ',
+            'LEFT JOIN grades ON ',
+            '   deliverable_components.rowid = grades.component AND grades.submitter = ?',
+            'WHERE deliverable_components.deliverable = ? ',
+            ';'
+        ].join('');
+
         var userid = req.user.userid;
+        var deliverable_shortname = req.params.name;
 
-        var context = {
-            deliverable: deliverable,
-            target: deliverables.getTarget(deliverable, req.user),
-        };
+        db.get(student_query, [userid], function(error, student) {
+            db.get(deliverable_query, [deliverable_shortname], function(error, deliverable) {
+                var submitter = deliverable.is_group ? student.group_id : student.userid;
 
-        res.render('deliverable', context);
-    });
-});
+                db.all(components_query, [submitter, deliverable_shortname], function(error, components) {
+                    deliverable.components = components;
+                    for (var i=0; i<components.length; i++) {
+                        components[i].submission = getSubmissionInfo(student, deliverable, components[i]);
 
-app.get('/deliverable/:name/submission', auth.loginRequired, function(req, res) {
-    deliverables.getDeliverable(req.params.name, function(deliverable) {
+                        var p = components[i].grade;
+                        if (p)
+                            components[i].grade = {
+                                percentage: p,
+                                letter: getLetterGrade(p)
+                            };
+                    }
+
+                    var context = {
+                        student: student,
+                        deliverable: deliverable
+                    };
+
+                    res.render('deliverable', context);
+                });
+            });
+        });
+    })
+
+    .post(auth.loginRequired, function(req, res) {
         var userid = req.user.userid;
-        var dest = getUploadLocation(req.params.name, userid);
+        var deliverable_shortname = req.params.name;
 
-        var submission_info = {
-            deliverable: deliverable,
-            is_submitted: fs.existsSync(dest),
-        };
+        deliverables.getDeliverable(deliverable_shortname, function(deliverable) {
+            var submitter = deliverable.is_group ? req.user.group_id : req.user.userid;
 
-        res.render('submission', submission_info);
+            var dest = [__dirname, 'uploads', deliverable_shortname].join('/');
+
+            if (!fs.existsSync(dest))
+                fs.mkdirSync(dest);
+
+            dest = dest + '/' + req.body.component;
+
+            if (!fs.existsSync(dest))
+                fs.mkdirSync(dest);
+
+            if (req.body.type == 'document') {
+                var filetype = '.' + req.files.file.extension;
+                fs.renameSync(req.files.file.path, dest + '/' + submitter + filetype);
+            }
+            else {
+                var filetype = '.txt';
+                fs.writeFileSync(dest + '/' + submitter + filetype, req.body.text);
+            }
+
+            res.redirect('/');
+        });
     });
-});
 
-app.post('/deliverable/:name/submission', auth.loginRequired, function(req, res) {
-    deliverables.getDeliverable(req.params.name, function(deliverable) {
-        var userid = req.user.userid;
-        var dest = getUploadLocation(req.params.name, '');
+app.get('/download/:deliverable/:component/:filename', auth.loginRequired, function(req, res) {
+    var submitter = req.params.filename.substr(0, req.params.filename.length-4);
+    var filetype = req.params.filename.substring(req.params.filename.length-4);
 
-        if (!fs.existsSync(dest))
-            fs.mkdirSync(dest);
-
-        var dest = getUploadLocation(req.params.name, userid);
-
-        fs.renameSync(req.files.file.path, dest);
-
-        var submission_info = {
-            deliverable: deliverable,
-            is_submitted: fs.existsSync(dest),
-            uploaded: true,
-        };
-
-        res.render('submission', submission_info);
-    });
-});
-
-app.get('/download/:deliverable/:userid', auth.loginRequired, function(req, res) {
-    var userid = req.user.userid;
-
-    if (userid !== req.params.userid) {
+    if (submitter != req.user.userid && submitter != req.user.group_id) {
         res.sendStatus(403);
         return;
     }
 
-    var dest = getUploadLocation(req.params.deliverable, req.params.userid);
-    var filename = req.params.userid + '_' + req.params.deliverable + '.pdf';
+    var dest = [__dirname, 'uploads', req.params.deliverable, req.params.component, req.params.filename].join('/');
+    var filename = [submitter, req.params.deliverable, req.params.component + filetype].join('-');
     res.download(dest, filename);
 });
 
@@ -197,7 +279,7 @@ app.route('/admin/students')
     .post(function(req, res) {
         csv_data = CSV.parse(fs.readFileSync(req.files.csv_file.path, 'utf8'));
 
-        console.log(csv_data);
+        //console.log(csv_data);
 
         students.importFromCsv(csv_data, function() {
             res.redirect('/admin/students');

@@ -41,8 +41,12 @@
 
         query.push('END TRANSACTION;');
 
-        console.log(query.join('\n'));
-        onSuccess();
+        //console.log(query.join('\n'));
+        //onSuccess();
+
+        db.exec(query.join('\n'), function() {
+            onSuccess();
+        });
     };
 
 

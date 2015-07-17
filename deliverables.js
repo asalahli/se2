@@ -90,8 +90,8 @@
             var close_date = new Date(deliverable.closes);
 
             query.push(['    ',
-                'INSERT INTO deliverables (shortname, name, weight, open_date, close_date) ',
-                'VALUES ("', deliverable.shortname, '","', deliverable.name,
+                'INSERT INTO deliverables (shortname, name, description, weight, open_date, close_date) ',
+                'VALUES ("', deliverable.shortname, '","', deliverable.name, '","', deliverable.description,
                 '","', deliverable.weight, '","', open_date.getTime(), '","', close_date.getTime(), '");'
             ].join(''));
 
@@ -99,8 +99,8 @@
                 var component = deliverable.components[j];
 
                 query.push(['        ',
-                    'INSERT INTO deliverable_components (deliverable, type, weight) ',
-                    'VALUES ("', deliverable.shortname, '","', component.type,
+                    'INSERT INTO deliverable_components (deliverable, type, description, weight) ',
+                    'VALUES ("', deliverable.shortname, '","', component.type, '","', component.description,
                     '","', component.weight, '");'
                 ].join(''));
             }

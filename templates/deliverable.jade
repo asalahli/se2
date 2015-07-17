@@ -10,8 +10,8 @@ div.panel.panel-default
                 small= '- ' + (deliverable.weight * 100) + '%'
 
     div(style='padding: 10px 15px 0 15px')
-        p#description.collapse.in= deliverable.description.substring(0, 500) + ' '
-            a(href='javascript:void(0)', onclick='') [read more...]
+        p#description.collapse.in= deliverable.description.substring(0, 500) + '... '
+            a(href='javascript:void(0)', onclick='') [read more]
 
         div#accordion.panel-group(role='tablist', aria-multiselectable='true')
             for component in deliverable.components
@@ -19,20 +19,47 @@ div.panel.panel-default
                     div.panel-heading(role='tab')
                         h4.panel-title
                             a(role='button', data-toggle='collapse', href='#component-'+component.rowid)= component.type.charAt(0).toUpperCase() + component.type.slice(1)
+                                small(style='float: right')
+                                    if component.grade
+                                        i= 'Your grade: ' + component.grade.percentage + ' (' + component.grade.letter + ')'
+                                    else if component.type === 'document' || component.type === 'link' || component.type == 'text'
+                                        if !component.submission
+                                            i Not submitted yet
+                                        else
+                                            i Not graded yet
+                                    else
+                                        i Not graded yet
 
                     div.panel-collapse.collapse(id='component-'+component.rowid, role='tabpanel')
-                        div.panel-body= component.description
+                        div.panel-body
+                            p= component.description
+                            p
+                                if component.submission
+                                    a(href=component.submission.url, target='blank')= component.submission.title
+                                    i= '  (Submitted on ' + component.submission.submitted_on.toDateString() + ')'
 
                             if component.type === 'document'
-                                form
+                                form(action='/deliverable/'+deliverable.shortname, method='POST', enctype='multipart/form-data')
+                                    input(type='hidden', name='component', value=component.rowid)
+                                    input(type='hidden', name='type', value='document')
                                     div.form-group
                                         label(for='component-'+component.rowid+'-file') Select file to upload
-                                        input(id='component-'+component.rowid+'-file', type='file')
+                                        input(id='component-'+component.rowid+'-file', type='file', name='file', accept='.pdf')
                                     button.btn.btn-default(type='submit') Upload
 
                             else if component.type === 'link'
-                                form
+                                form(action='/deliverable/'+deliverable.shortname, method='POST', enctype='multipart/form-data')
+                                    input(type='hidden', name='component', value=component.rowid)
+                                    input(type='hidden', name='type', value='link')
                                     div.form-group
-                                    label(for='component-' + component.rowid + '-link') Paste the link here
-                                    input.form-control(id='component-' + component.rowid + '-link', type='text')
+                                        label(for='component-' + component.rowid + '-link') Paste the link here
+                                        input.form-control(id='component-' + component.rowid + '-link', type='text', name='text')
+                                    button.btn.btn-default(type='submit') Submit
+                            else if component.type == 'text'
+                                form(action='/deliverable/'+deliverable.shortname, method='POST', enctype='multipart/form-data')
+                                    input(type='hidden', name='component', value=component.rowid)
+                                    input(type='hidden', name='type', value='text')
+                                    div.form-group
+                                        label(for='component-' + component.rowid + '-text') Enter the text here
+                                        textarea.form-control(id='component-' + component.rowid + '-text', name='text')
                                     button.btn.btn-default(type='submit') Submit
