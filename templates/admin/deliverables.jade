@@ -1,45 +1,41 @@
-doctype html
-html
-    head
-        meta(charset="utf-8")
-        title SE2 Software Design and Architecture
-        link(type='text/css', href='/static/css/normalize.css')
-    body
-        main
-            table(border='1', cellpadding='4')
-                thead
+extends ./base.jade
+
+block content
+    main
+        table(border='1', cellpadding='4')
+            thead
+                tr
+                    th Short name
+                    th Name
+                    th Opens
+                    th Closes
+                    th Weight
+                for deliverable in deliverables
                     tr
-                        th Short name
-                        th Name
-                        th Opens
-                        th Closes
-                        th Weight
-                    for deliverable in deliverables
+                        td= deliverable.shortname
+                        td= deliverable.name
+                        td= deliverable.open_date.toDateString()
+                        td= deliverable.close_date.toDateString()
+                        td
+                            if deliverable.weight == 0
+                                span Pass/Fail
+                            else
+                                span= deliverable.weight
+
+                    for component in deliverable.components
                         tr
-                            td= deliverable.shortname
-                            td= deliverable.name
-                            td= deliverable.open_date.toDateString()
-                            td= deliverable.close_date.toDateString()
-                            td
-                                if deliverable.weight == 0
-                                    span Pass/Fail
-                                else
-                                    span= deliverable.weight
+                            td(colspan='5') &nbsp;&nbsp;&nbsp;&nbsp;
+                                span= component.type + ' - '
+                                    if component.weight == 0
+                                        i Pass/Fail
+                                    else
+                                        i= component.weight
 
-                        for component in deliverable.components
-                            tr
-                                td(colspan='5') &nbsp;&nbsp;&nbsp;&nbsp;
-                                    span= component.type + ' - '
-                                        if component.weight == 0
-                                            i Pass/Fail
-                                        else
-                                            i= component.weight
+        br
 
-            br
-
-            p Import from json file
-            form(method='POST', enctype='multipart/form-data')
-                p
-                    input(type='file', name='json_file')
-                p
-                    input(type='submit', value='Import')
+        p Import from json file
+        form(method='POST', enctype='multipart/form-data')
+            p
+                input(type='file', name='json_file')
+            p
+                input(type='submit', value='Import')

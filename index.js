@@ -62,6 +62,8 @@ app.use(multer({
     dest: __dirname + '/uploads/.temp',
 }));
 
+var bodyParser = require('body-parser')
+app.use(bodyParser.json());
 
 // Database
 var sqlite3 = require('sqlite3').verbose();
@@ -139,7 +141,25 @@ var getLetterGrade = function(p){
 
 app.get('/', auth.loginRequired, function(req, res) {
     deliverables.getAllDeliverables(function(deliverables) {
-        res.render('home', { deliverables: deliverables });
+        if (!req.user.group_id) {
+            res.render('home', { deliverables: deliverables });
+            return;
+        }
+
+        db.get('SELECT rowid, name FROM groups WHERE rowid=?', [req.user.group_id], function(error, group) {
+            if (error) console.log(error);
+
+            db.all('SELECT userid, firstname, lastname FROM auth WHERE group_id=?', [group.rowid], function(error, members) {
+                if (error) console.log(error);
+
+                var groupInfo = {
+                    name: group.name,
+                    members: members
+                };
+
+                res.render('home', { deliverables: deliverables, group: groupInfo });
+            });
+        });
     });
 });
 
@@ -251,6 +271,73 @@ app.get('/download/:deliverable/:component/:filename', auth.loginRequired, funct
     res.download(dest, filename);
 });
 
+app.route('/group')
+
+    .get(auth.loginRequired, function(req, res) {
+        var student_query = [
+            'SELECT userid, firstname, lastname FROM auth ',
+            'WHERE userid != ? and group_id IS NULL ',
+            ';'
+        ].join('');
+
+        db.all(student_query, [req.user.userid], function(error, students) {
+            var context = {
+                students: students
+            }
+
+            res.render('group', context);
+        });
+    })
+
+    .post(auth.loginRequired, function(req, res) {
+        groupName = req.body.name;
+        members = req.body.members;
+
+        if (members.length < settings.MIN_GROUP_SIZE) {
+            res.send({
+                error: true,
+                message: 'A group must have at least ' + settings.MIN_GROUP_SIZE + ' members.'
+            });
+        }
+        else if (members.length > settings.MAX_GROUP_SIZE) {
+            res.send({
+                error: true,
+                message: 'A group can have at most ' + settings.MAX_GROUP_SIZE + ' members.'
+            });
+        }
+        else {
+            var query = 'INSERT INTO groups (name) VALUES (?);';
+            db.run(query, [groupName], function(error, result) {
+                if (error) console.log(error);
+
+                var groupId = this.lastID;
+
+                var params = [groupId, members[0]];
+                var query = ['UPDATE auth SET group_id=? WHERE userid=?'];
+
+                for (var i=1; i<members.length; i++) {
+                    query.push('OR userid=?');
+                    params.push(members[i]);
+                }
+
+                query.push(';');
+                
+                db.run(query.join(' '), params, function(error, result) {
+                    if (error) console.log(error);
+
+                    res.send({ error: false });
+                });
+            });
+        }
+    });
+
+app.route('/admin')
+
+    .get(function(req, res) {
+        res.render('admin/base');
+    });
+
+
 app.route('/admin/deliverables')
 
     .get(function(req, res) {
@@ -285,6 +372,117 @@ app.route('/admin/students')
             res.redirect('/admin/students');
         });
     });
+
+
+app.route('/admin/grades')
+
+    .get(function(req, res) {
+        deliverables.getAllDeliverables(function(deliverables) {
+            var context = {
+                deliverables: deliverables
+            };
+
+            res.render('admin/grades-home', context);
+        });
+    })
+
+    .post(function(req, res) {
+        deliverable = req.body.deliverable;
+        is_group = req.body.is_group == 1 ? true : false;
+        component = req.body.component;
+
+        var student_list_query = [
+            'SELECT auth.userid as id FROM auth ',
+            ';'
+        ].join('');
+
+        var group_list_query = [
+            'SELECT DISTINCT auth.group_id as id FROM auth ',
+            'WHERE group_id IS NOT NULL ',
+            ';'
+        ].join('');
+
+        var submitter_list_query = is_group ? group_list_query : student_list_query;
+
+        db.all(submitter_list_query, function(error, submitters) {
+            // TODO: Prevent SQL injection
+
+            query = ['BEGIN TRANSACTION;'];
+            query.push('    DELETE FROM grades WHERE deliverable="' + deliverable + '" AND component="' + component + '";');
+
+            for (var i=0; i<submitters.length; i++) {
+                var submitter = submitters[i].id;
+
+                query.push(['    ',
+                    'INSERT INTO grades (submitter, deliverable, component, grade, text) VALUES ("',
+                    submitter, '","', deliverable, '","', component, '","',
+                    req.body[submitter+'-percentage'], '","', req.body[submitter+'-text'], '");'
+                ].join(''));
+            }
+
+            query.push('END TRANSACTION;');
+            //console.log(query.join('\n'));
+
+            db.exec(query.join('\n'), function() {
+                res.redirect(req.url);
+            });
+
+        });
+
+    });
+
+
+app.route('/admin/grades/:deliverable/:component')
+
+    .get(function(req, res) {
+        var deliverable_query = [
+            'SELECT rowid, shortname, name, description, is_group, weight, open_date, close_date ',
+            'FROM deliverables ',
+            'WHERE shortname = ? ',
+            ';'
+        ].join('');
+
+        var student_list_query = [
+            'SELECT ',
+            '   printf("%s %s", auth.firstname, auth.lastname) as name, ',
+            '   auth.userid as id, ',
+            '   grades.grade, grades.text ',
+            'FROM auth ',
+            'LEFT JOIN grades ON ',
+            '   grades.submitter=auth.userid AND grades.deliverable = ? AND grades.component = ? ',
+            ';'
+        ].join('');
+
+        var group_list_query = [
+            'SELECT DISTINCT ',
+            '   auth.group_id as id, auth.group_id as name, ',
+            '   grades.grade, grades.text ',
+            'FROM auth ',
+            'LEFT JOIN grades ON ',
+            '   grades.submitter=auth.group_id AND grades.deliverable = ? AND grades.component = ? ',
+            'WHERE group_id IS NOT NULL ',
+            ';'
+        ].join('');
+
+        db.get(deliverable_query, [req.params.deliverable], function(error, deliverable) {
+            if (error) console.log(error);
+
+            var submitter_list_query = deliverable.is_group ? group_list_query : student_list_query;
+
+            db.all(submitter_list_query, [req.params.deliverable, req.params.component], function(error, grades) {
+                if (error) console.log(error);
+
+                var context = {
+                    deliverable: deliverable,
+                    component_id: req.params.component,
+                    grades: grades,
+                };
+
+                res.render('admin/grades-entry', context);
+            });
+        });
+    });
+
 
 // Server
 var server = app.listen(settings.PORT, function() {

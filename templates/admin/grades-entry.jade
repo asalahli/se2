@@ -1,0 +1,22 @@
+form(method='POST', enctype='multipart/form-data')
+    input(type='hidden', name='deliverable', value=deliverable.shortname)
+    input(type='hidden', name='is_group', value=deliverable.is_group)
+    input(type='hidden', name='component', value=component_id)
+
+    table(border='1', cellpadding='4')
+        tr
+            th Name
+            th Percentage
+            th Text
+            th File
+        for entry in grades
+            tr
+                td= entry.name
+                td
+                    input(type='text', name=entry.id+'-percentage', value=entry.grade)
+                td
+                    textarea(name=entry.id+'-text')= entry.text
+                td
+                    input(type='file', name=entry.id+'-file')
+
+    input(type='submit', value='Save')

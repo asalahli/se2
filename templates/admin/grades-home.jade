@@ -1,0 +1,16 @@
+extends ./base.jade
+
+block content
+    ul
+        for deliverable in deliverables
+            li
+                a(href='#')= deliverable.name
+                ul
+                    for component in deliverable.components
+                        li
+                            a(href='javascript:gradeEntry("' + deliverable.shortname + '", "' + component.rowid + '")')= component.type
+
+    div#content-area
+
+block scripts
+    script(src='/static/js/grade.js')

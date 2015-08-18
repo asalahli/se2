@@ -1,6 +1,27 @@
 //
    Created by Azad on 08/07/2015.
 
+
+script.
+    var del =!{JSON.stringify(deliverable)}
+
+
+// Grade details dialog
+div#grade-modal.modal.fade
+    div.modal-dialog
+        div.modal-content
+            div.modal-header
+                button.close(type='button', data-dismiss='modal', aria-label='Close')
+                    span(aria-hidden='true') &times;
+                h4.modal-title
+                    small(style='color: #333; font-weight: bold;') Grade
+            div.modal-body
+                p.grade Your grade:&nbsp;
+                    span
+                div.modal-footer
+                button.btn.btn-default.btn-primary(type='button', data-dismiss='modal') Close
+
+
 div.panel.panel-default
     div.panel-heading
         h4.panel-title= deliverable.name + ' '
@@ -19,16 +40,17 @@ div.panel.panel-default
                     div.panel-heading(role='tab')
                         h4.panel-title
                             a(role='button', data-toggle='collapse', href='#component-'+component.rowid)= component.type.charAt(0).toUpperCase() + component.type.slice(1)
-                                small(style='float: right')
-                                    if component.grade
+                            small(style='float: right')
+                                if component.grade
+                                    a(href='javascript:gradeDetails(del, '+component.rowid+')')
                                         i= 'Your grade: ' + component.grade.percentage + ' (' + component.grade.letter + ')'
-                                    else if component.type === 'document' || component.type === 'link' || component.type == 'text'
-                                        if !component.submission
-                                            i Not submitted yet
-                                        else
-                                            i Not graded yet
+                                else if component.type === 'document' || component.type === 'link' || component.type == 'text'
+                                    if !component.submission
+                                        i Not submitted yet
                                     else
                                         i Not graded yet
+                                else
+                                    i Not graded yet
 
                     div.panel-collapse.collapse(id='component-'+component.rowid, role='tabpanel')
                         div.panel-body

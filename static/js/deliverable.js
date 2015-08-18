@@ -22,3 +22,17 @@ var deliverable = function(shortname) {
         }
     );
 };
+
+
+var gradeDetails = function(deliverable, componentId) {
+    console.log(deliverable);
+    for (var i=0; i<deliverable.components.length; i++)
+        if (deliverable.components[i].rowid = componentId)
+            break;
+
+    var component = deliverable.components[i];
+
+    $('#grade-modal .modal-title small').text('Your grade for the ' + component.type + ' component of ' + deliverable.name);
+    $('#grade-modal .modal-body .grade span').text(component.grade.percentage + '% (' + component.grade.letter + ')');
+    $('#grade-modal').modal('show');
+};

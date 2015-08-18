@@ -28,9 +28,21 @@ block content
                             //                        | Submitted
                             //                    else
                             //                        | Not submitted
+
+            ul#members.list-group
+                li.list-group-item.active
+                    b Your group
+                if group
+                    for member in group.members
+                        li.list-group-item= member.firstname + ' ' + member.lastname
+                            span.badge= member.userid
+                else
+                    div.jumbotron(style='margin-bottom: 0')
+                        a.center-block.btn.btn-primary(href='/group') Create a group
+
         div.col-md-8#content-area
-            div.panel.panel-primary
-                | To begin select a deliverable from the right
+            div.jumbotron(style='margin-bottom: 0;')
+                span.center-block(style='text-align: center') To begin select a deliverable from the right
 
 block scripts
     script(src='/static/js/deliverable.js')
