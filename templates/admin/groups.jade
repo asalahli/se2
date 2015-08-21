@@ -1,0 +1,31 @@
+extends ./base.jade
+
+block content
+    main
+        table
+            for group in groups
+                tr
+                    td= group.rowid
+                    td= group.name
+                    td
+                        a.btn.btn-default.btn-sm(href='javascript:disband(' + group.rowid + ')') Disband
+                for member in group.members.split(',')
+                    tr
+                        td(colspan='2')= member
+
+block scripts
+    script.
+        var disband = function(group_id) {
+            $.ajax({
+                url: '/admin/groups',
+                type: 'DELETE',
+                dataType: "json",
+                contentType:"application/json; charset=utf-8",
+                data: JSON.stringify({ id: group_id }),
+
+                complete: function() {
+                    window.location.href='/admin/groups';
+                }
+
+            });
+        }

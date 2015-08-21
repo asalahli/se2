@@ -30,13 +30,22 @@ block content
                             //                        | Not submitted
 
             ul#members.list-group
-                li.list-group-item.active
-                    b Your group
                 if group
+                    li.list-group-item.active
+                        div#group-name(style='cursor: pointer;', title='Click to change')
+                            if group.name.length !== 0
+                                b= group.name
+                            else
+                                b Your group
+                        div#group-rename.form-inline
+                            input.form-control(type='text')
+                            button.btn.btn-default.pull-right(data-loading-text='Renaming...') Rename
                     for member in group.members
                         li.list-group-item= member.firstname + ' ' + member.lastname
                             span.badge= member.userid
                 else
+                    li.list-group-item.active
+                        b You're not in a group
                     div.jumbotron(style='margin-bottom: 0')
                         a.center-block.btn.btn-primary(href='/group') Create a group
 
@@ -46,3 +55,47 @@ block content
 
 block scripts
     script(src='/static/js/deliverable.js')
+
+    script.
+        var group_name = '!{group ? group.name : ""}';
+
+        $(document).ready(function(){
+            $('#group-rename').hide();
+
+            $('#group-name').on('click', function(e) {
+                $('#group-rename input').val(group_name);
+                $('#group-name').hide();
+                $('#group-rename').show();
+            });
+
+            $('#group-rename button').on('click', function() {
+                var new_name = $('#group-rename input').val().trim();
+
+                var btn = $(this);
+                btn.button('loading');
+
+                $.ajax({
+                    url: '/group/rename',
+                    type: 'POST',
+                    dataType: "json",
+                    contentType:"application/json; charset=utf-8",
+                    data: JSON.stringify({ name: new_name }),
+
+                    success: function() {
+                        group_name = new_name;
+
+                        $('#group-name b').text(group_name);
+                        $('#group-rename').hide();
+                        $('#group-name').show();
+                    },
+
+                    error: function() {
+                        alert('Error: Could not rename the group.');
+                    },
+
+                    complete: function() {
+                        btn.button('reset');
+                    }
+                });
+            });
+        });

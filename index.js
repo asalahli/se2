@@ -275,7 +275,7 @@ app.route('/group')
 
     .get(auth.loginRequired, function(req, res) {
         var student_query = [
-            'SELECT userid, firstname, lastname FROM auth ',
+            'SELECT userid, github_id, firstname, lastname FROM auth ',
             'WHERE userid != ? and group_id IS NULL ',
             ';'
         ].join('');
@@ -331,6 +331,20 @@ app.route('/group')
         }
     });
 
+app.route('/group/rename')
+
+    .post(auth.loginRequired, function(req, res) {
+        var group_id = req.user.group_id;
+        var new_name = req.body.name;
+
+        var query = 'UPDATE groups SET name = ? WHERE rowid = ?;';
+        db.run(query, [new_name, group_id], function(error, result) {
+            if (error) console.log(error);
+
+            res.send({ error: false });
+        });
+    });
+
 app.route('/admin')
 
     .get(function(req, res) {
@@ -370,6 +384,42 @@ app.route('/admin/students')
 
         students.importFromCsv(csv_data, function() {
             res.redirect('/admin/students');
+        });
+    });
+
+
+app.route('/admin/groups')
+
+    .get(function(req, res) {
+        var query = [
+            'SELECT',
+            '    groups.rowid as rowid,',
+            '    groups.name as name,',
+            '    group_concat(',
+            '        printf("%s %s (%s)", auth.firstname, auth.lastname, auth.userid)',
+            '    ) as members',
+            'FROM groups',
+            'JOIN auth ON groups.rowid = auth.group_id',
+            'GROUP BY groups.rowid;',
+        ].join(' ');
+
+        db.all(query, [], function(error, groups) {
+            res.render('admin/groups', { groups: groups });
+        });
+    })
+
+    .delete(function(req, res) {
+        var group_id = req.body.id;
+        var query1 = 'DELETE FROM groups WHERE rowid = ?;';
+        var query2 = 'UPDATE auth SET group_id = NULL WHERE group_id = ?;';
+
+        db.run(query1, [group_id], function(error, result) {
+            if (error) console.log("1", error);
+            db.run(query2, [group_id], function(error, result) {
+                if (error) console.log("2", error);
+
+                res.send({ error: false });
+            });
         });
     });
 

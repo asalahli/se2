@@ -2,134 +2,130 @@ extends ./base.jade
 
 
 block content
-    article.row
-        div.col-md-4
-            p
-                input#group-name.form-control(type='text', placeholder='Group name')
+    if user.group_id
+        div.jumbotron
+            span.center-block(style='text-align: center') You are already in a group. &nbsp;
+                a.btn.btn-primary(href='/') Return Home
+    else
+        article.row
+            div.col-md-4
+                p
+                    input#group-name.form-control(type='text', placeholder='Group name')
 
-            ul#members.list-group
-                li.list-group-item.active
-                    b Members
-                li.list-group-item= user.firstname + ' ' + user.lastname
-                    span.badge= user.userid
+                ul#members.list-group
+                    li.list-group-item.active
+                        b Members
+                    li.list-group-item= user.firstname + ' ' + user.lastname
+                        span.badge= user.userid
 
-            div#error.alert.alert-danger(role='alert')
+                div#error.alert.alert-danger(role='alert')
 
-            button#submit-button.btn.btn-primary(data-loading-text='Creating...') Create
+                button#submit-button.btn.btn-primary(data-loading-text='Creating...') Create
 
-        div.col-md-8
-            input#search-box.form-control(type='text', placeholder='Search')
+            div.col-md-8
+                input#search-box.form-control(type='text', placeholder='Search')
 
-            table#student-list.table.table-stripped.table-hover
-                thead
-                    tr
-                        th Selected
-                        th User id
-                        th Full name
-                tbody
-                    for student in students
+                table#student-list.table.table-stripped.table-hover
+                    thead
                         tr
-                            td.checked
-                                span.glyphicon.glyphicon-ok(aria-hidden='true')
-                            td.userid= student.userid
-                            td.fullname= student.firstname + ' ' + student.lastname
+                            th Selected
+                            th User id
+                            th Github id
+                            th Full name
+                    tbody
+                        for student in students
+                            tr
+                                td.checked
+                                    span.glyphicon.glyphicon-ok(aria-hidden='true')
+                                td.userid= student.userid
+                                td.github-id= student.github_id
+                                td.fullname= student.firstname + ' ' + student.lastname
 
 
-block scripts
-    script.
-        $(document).ready(function(){
-            $('.checked span').hide();
-            $('#error').hide();
-
-            $('#student-list tbody tr').on('click', function(e) {
-                var $el = e.currentTarget;
-
-                $($el).toggleClass('active');
-                $($el).find('.checked span').toggle();
-
-                var ptr = $($el).data('ptr');
-                if (ptr) {
-                    $(ptr).remove();
-                    $($el).removeData('ptr');
-                }
-                else {
-                    var fullname = $($el).find('.fullname').text();
-                    var userid = $($el).find('.userid').text();
-
-                    var entry = $('<li class="list-group-item">' + fullname + '<span class="badge">' + userid + '</span></li>');
-                    $('#members').append(entry);
-                    $($el).data('ptr', entry);
-                }
-            });
-
-            $('#search-box').on('input', function(e) {
-                var keyword = $(e.currentTarget).val().trim();
-
-                $('#student-list tbody tr').each(function(index, element) {
-                    var fullname = $(element).find('.fullname').text();
-                    var userid = $(element).find('.userid').text();
-
-                    if (fullname.search(keyword) >= 0 || userid.search(keyword) >= 0)
-                        $(element).show();
-                    else
-                        $(element).hide();
-                })
-            });
-
-            $('#submit-button').on('click', function(e) {
-                var groupName = $('#group-name').val().trim();
-                var members = [];
-
-                elements = $('#members span.badge');
-                for (var i=0; i<elements.length; i++) {
-                    var userid = $(elements[i]).text();
-                    members.push(userid);
-                }
-
-                var groupInfo = {
-                    name: groupName,
-                    members: members,
-                };
-
-                var btn = $(this);
+    block scripts
+        script.
+            $(document).ready(function(){
+                $('.checked span').hide();
                 $('#error').hide();
-                btn.button('loading');
 
-                $.ajax({
-                    url: '/group',
-                    method: 'POST',
-                    dataType: "json",
-                    contentType:"application/json; charset=utf-8",
-                    data: JSON.stringify(groupInfo),
+                $('#student-list tbody tr').on('click', function(e) {
+                    var $el = e.currentTarget;
 
-                    success: function(response, status) {
-                        if (response.error) {
-                            $('#error').text(response.message).show();
-                        }
-                        else {
-                            window.location.href = '/';
-                        }
-                    },
+                    $($el).toggleClass('active');
+                    $($el).find('.checked span').toggle();
 
-                    error: function(a, b, c) {
-                        console.log(a, b, c);
-                    },
+                    var ptr = $($el).data('ptr');
+                    if (ptr) {
+                        $(ptr).remove();
+                        $($el).removeData('ptr');
+                    }
+                    else {
+                        var fullname = $($el).find('.fullname').text();
+                        var userid = $($el).find('.userid').text();
 
-                    complete: function() {
-                        btn.button('reset');
+                        var entry = $('<li class="list-group-item">' + fullname + '<span class="badge">' + userid + '</span></li>');
+                        $('#members').append(entry);
+                        $($el).data('ptr', entry);
                     }
                 });
+
+                $('#search-box').on('input', function(e) {
+                    var keyword = $(e.currentTarget).val().trim();
+
+                    $('#student-list tbody tr').each(function(index, element) {
+                        var fullname = $(element).find('.fullname').text();
+                        var userid = $(element).find('.userid').text();
+
+                        if (fullname.search(keyword) >= 0 || userid.search(keyword) >= 0)
+                            $(element).show();
+                        else
+                            $(element).hide();
+                    })
+                });
+
+                $('#submit-button').on('click', function(e) {
+                    var groupName = $('#group-name').val().trim();
+                    var members = [];
+
+                    elements = $('#members span.badge');
+                    for (var i=0; i<elements.length; i++) {
+                        var userid = $(elements[i]).text();
+                        members.push(userid);
+                    }
+
+                    var groupInfo = {
+                        name: groupName,
+                        members: members,
+                    };
+
+                    var btn = $(this);
+                    $('#error').hide();
+                    btn.button('loading');
+
+                    $.ajax({
+                        url: '/group',
+                        method: 'POST',
+                        dataType: "json",
+                        contentType:"application/json; charset=utf-8",
+                        data: JSON.stringify(groupInfo),
+
+                        success: function(response, status) {
+                            if (response.error) {
+                                $('#error').text(response.message).show();
+                            }
+                            else {
+                                window.location.href = '/';
+                            }
+                        },
+
+                        error: function(a, b, c) {
+                            console.log(a, b, c);
+                        },
+
+                        complete: function() {
+                            btn.button('reset');
+                        }
+                    });
+                });
             });
-        });
-
-
-
-
-
-
-
-
-
-
-
 
