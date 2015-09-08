@@ -1,4 +1,7 @@
 BEGIN TRANSACTION;
+CREATE TABLE `groups` (
+	`name`	TEXT
+);
 CREATE TABLE "grades" (
 	`submitter`	TEXT NOT NULL,
 	`deliverable`	TEXT NOT NULL,
@@ -27,6 +30,6 @@ CREATE TABLE "auth" (
 	`userid`	TEXT NOT NULL UNIQUE,
 	`student_number`	TEXT NOT NULL UNIQUE,
 	`github_id`	TEXT NOT NULL DEFAULT '',
-	`group_id`	TEXT
+	`group_id`	INTEGER
 );
 COMMIT;

@@ -60,7 +60,10 @@ div.panel.panel-default
                                     a(href=component.submission.url, target='blank')= component.submission.title
                                     i= '  (Submitted on ' + component.submission.submitted_on.toDateString() + ')'
 
-                            if component.type === 'document'
+                            if deliverable.close_date < new Date()
+                                p.bg-warning(style='padding: 8px;') Deadline for this deliverable has passed
+
+                            else if component.type === 'document'
                                 form(action='/deliverable/'+deliverable.shortname, method='POST', enctype='multipart/form-data')
                                     input(type='hidden', name='component', value=component.rowid)
                                     input(type='hidden', name='type', value='document')

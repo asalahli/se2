@@ -15,7 +15,7 @@
                 onError(error);
             }
             else if (error) {
-                console.log(error);
+                console.error(error);
             }
 
             for (var i=0; i<deliverables.length; i++) {
@@ -30,7 +30,7 @@
                     onError(error);
                 }
                 else if (error) {
-                    console.log(error);
+                    console.error(error);
                 }
 
                 for (var i=0; i<components.length; i++) {
@@ -106,8 +106,6 @@
             }
         }
         query.push('END TRANSACTION;');
-
-        // console.log(query.join('\n'));
 
         db.exec(query.join('\n'), function() {
             onSuccess();

@@ -2,21 +2,46 @@ doctype html
 html
     head
         meta(charset="utf-8")
-        title SE2 Software Design and Architecture
-        link(type='text/css', href='/static/css/normalize.css')
-    body
-        ul
-            li
-                a(href='/admin/deliverables') Deliverables
-            li
-                a(href='/admin/students') Students
-            li
-                a(href='/admin/groups') Groups
-            li
-                a(href='/admin/grades') Grades
+        meta(http-equiv="X-UA-Compatible" content="IE=edge")
+        meta(name="viewport" content="width=device-width, initial-scale=1")
 
-        block content
+        title Admin | SE2: Software Design and Architecture
+        link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css')
+        //link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css')
+
+        style
+            | body {
+            |     min-height: 2000px;
+            | }
+            | .navbar-static-top {
+            |     margin-bottom: 19px;
+            | }
+
+
+    body
+        nav.navbar.navbar-default.navbar-static-top
+            div.container
+                div.navbar-header
+                    button.navbar-toggle.collapsed(type='button', data-toggle='collapse', data-target='#navbar', aria-expanded='false', aria-controls='navbar')
+                        span.sr-only Toggle navigation
+                        span.icon-bar
+                        span.icon-bar
+                        span.icon-bar
+                    span.navbar-brand SE2: Software Design and Architecture
+                div#navbar.navbar-collapse.collapse.navbar-right
+                    ul.nav.navbar-nav
+                        li
+                            a(href='/admin/deliverables') Deliverables
+                        li
+                            a(href='/admin/students') Students
+                        li
+                            a(href='/admin/groups') Groups
+                        li
+                            a(href='/admin/grades') Grades
+        main.container
+            block content
 
         script(src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js')
         script(src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js')
+
         block scripts

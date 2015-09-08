@@ -15,4 +15,17 @@ module.exports = {
     // Course specific
     MIN_GROUP_SIZE: 2,
     MAX_GROUP_SIZE: 4,
+
+    admins: [
+        {
+        githubId: 'asalahli',
+        name: 'Azad Salahli',
+        role: 'ta'
+        },
+        {
+        githubId: 'uname',
+        name: 'Name',
+        role: 'prof/ta'
+        }
+    ]
 };

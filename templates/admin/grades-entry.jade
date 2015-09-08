@@ -1,22 +1,82 @@
+h3= deliverable.name
+    small= ' component ' + component_id
+
 form(method='POST', enctype='multipart/form-data')
     input(type='hidden', name='deliverable', value=deliverable.shortname)
     input(type='hidden', name='is_group', value=deliverable.is_group)
     input(type='hidden', name='component', value=component_id)
 
-    table(border='1', cellpadding='4')
+    table.table.table-striped.table-bordered
         tr
             th Name
             th Percentage
+            th Letter
             th Text
             th File
         for entry in grades
             tr
                 td= entry.name
                 td
-                    input(type='text', name=entry.id+'-percentage', value=entry.grade)
+                    input.form-control.gr-percentage(type='text', name=entry.id+'-percentage', value=entry.grade)
                 td
-                    textarea(name=entry.id+'-text')= entry.text
+                    select.form-control.gr-letter(style='width: 64px; padding-left: 6px;', name=entry.id+'-letter')
+                        option(value='') --
+                        option(value='A') A
+                        option(value='B') B
+                        option(value='C+') C+
+                        option(value='C') C
+                        option(value='C-') C-
+                        option(value='F') F
+
+                td
+                    textarea.form-control(name=entry.id+'-text')= entry.text
                 td
                     input(type='file', name=entry.id+'-file')
 
-    input(type='submit', value='Save')
+    button.btn.btn-primary(type='submit') Save
+
+script.
+    // Terrible hack
+    var converter = {converter.toString()};
+
+    console.log(converter);
+
+    $('.gr-percentage').on('input', function(e) {
+        var entry_id = this.name.substring(0, this.name.length-11);
+        var $el = $('select[name="' + entry_id + '-letter"]')[0]
+
+        var l = '';
+        var p = parseInt($(this).val());
+        console.log(p);
+
+        if (86 <= p && p <= 100) l='A';
+        else if (73 <= p && p <= 85) l='B';
+        else if (67 <= p && p <= 72) l='C+';
+        else if (60 <= p && p <= 66) l='C';
+        else if (50 <= p && p <= 59) l='C-';
+        else if (0 <= p && p <= 49) l='F';
+        else l='';
+
+        $($el).find('option').prop('selected', false);
+        $($el).find('option[value="' + l + '"]').prop('selected', true);
+    });
+
+    $('.gr-letter').on('change', function(e) {
+        var entry_id = this.name.substring(0, this.name.length-7);
+        var $el = $('input[name="' + entry_id + '-percentage"]')[0]
+
+        var l = $(this).val();
+
+        var p = ({
+            'A': '100',
+            'B': '85',
+            'C+': '72',
+            'C': '66',
+            'C-': '59',
+            'F': '49'
+        })[l];
+
+        if (!p) p == '';
+
+        $($el).val(p);
+    });

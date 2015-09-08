@@ -1,16 +1,20 @@
 extends ./base.jade
 
 block content
-    ul
-        for deliverable in deliverables
-            li
-                a(href='#')= deliverable.name
-                ul
-                    for component in deliverable.components
-                        li
-                            a(href='javascript:gradeEntry("' + deliverable.shortname + '", "' + component.rowid + '")')= component.type
+    style #table tr td { vertical-align: middle; }
 
-    div#content-area
+    article.row
+        div.col-md-4
+            ul.nav.nav-pills.nav-stacked
+                for deliverable in deliverables
+                    li
+                        a(role='button', data-toggle='collapse', data-target='#' + deliverable.shortname, aria-expanded='false' aria-controls=deliverable.shortname)= deliverable.name
+                        ul.nav.nav-stacked.collapse(id=deliverable.shortname)
+                            for component in deliverable.components
+                                li
+                                    a(style='padding-left: 32px;', href='javascript:gradeEntry("' + deliverable.shortname + '", "' + component.rowid + '")')= component.type
+
+        div.col-md-8#content-area
 
 block scripts
     script(src='/static/js/grade.js')

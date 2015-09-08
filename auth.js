@@ -46,6 +46,16 @@
     };
 
 
+    var adminsOnly = function(req, res, next) {
+        if (!req.user.is_admin) {
+            res.redirect('/admin/permission-denied')
+        }
+        else {
+            next()
+        }
+    };
+
+
     /**
      * Authentication middleware. Use this as,
      *      app.get('/some/path', loginRequired, function(res, req) { ... });
@@ -69,8 +79,6 @@
 
         var access_token = match[0].substring(13);
 
-        console.log('Access token: ' + access_token);
-
         request.get(
             {
                 url: 'https://api.github.com/user',
@@ -88,8 +96,6 @@
                 }
 
                 data = JSON.parse(body);
-
-                console.log('GitHub username: ' + data.login);
 
                 getUserByGithubId(data.login, function(user) {
                     if (!user) {
@@ -112,7 +118,7 @@
 
         db.get(query, [userid, student_number], function(error, row) {
             if (error) {
-                console.log(error);
+                console.error(error);
             }
             else if (!row) {
                 onError();
@@ -127,7 +133,20 @@
 
 
     var getUserByGithubId = function(githubId, onSuccess, onError) {
-        var query = 'SELECT rowid, firstname, lastname, userid, student_number, group_id '
+        // Checking to see if the user is admin
+        for (var i=0; i<settings.admins.length; i++) {
+            if (settings.admins[i].githubId == githubId) {
+                var row = {
+                    userid: settings.admins[i].githubId,
+                    name: settings.admins[i].name,
+                    is_admin: true,
+                };
+
+                return onSuccess(row)
+            }
+        }
+
+        var query = 'SELECT rowid, firstname, lastname, userid, student_number, group_id, 0 as is_admin '
             + 'FROM auth '
             + 'WHERE github_id="'+githubId+'";';
 
@@ -147,5 +166,6 @@
     module.exports.getAccessToken = getAccessToken;
     module.exports.assignGithubId = assignGithubId;
     module.exports.loginRequired = loginRequired;
+    module.exports.adminsOnly = adminsOnly;
 
 })();

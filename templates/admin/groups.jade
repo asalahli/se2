@@ -1,17 +1,26 @@
 extends ./base.jade
 
 block content
+    style #table tr td { vertical-align: middle; }
     main
-        table
-            for group in groups
+        table#table.table.table-bordered
+            thead
                 tr
-                    td= group.rowid
-                    td= group.name
-                    td
-                        a.btn.btn-default.btn-sm(href='javascript:disband(' + group.rowid + ')') Disband
-                for member in group.members.split(',')
+                    th ID
+                    th Name
+                    th Members
+                    th
+            tbody
+                for group in groups
                     tr
-                        td(colspan='2')= member
+                        td= group.rowid
+                        td= group.name
+                        td
+                            ul.list-unstyled
+                                for member in group.members.split(',')
+                                    li= member
+                        td
+                            a.btn.btn-danger(href='javascript:disband(' + group.rowid + ')') Disband
 
 block scripts
     script.

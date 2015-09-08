@@ -2,7 +2,7 @@ extends ./base.jade
 
 block content
     main
-        table(border='1', cellpadding='4')
+        table.table.table-striped.table-bordered
             thead
                 tr
                     th First name
@@ -10,6 +10,7 @@ block content
                     th User id
                     th Student number
                     th Github id
+            tbody
                 for student in students
                     tr
                         td= student.firstname
@@ -17,10 +18,13 @@ block content
                         td= student.userid
                         td= student.student_number
                         td= student.github_id
+
         br
-        p Import from csv file
-        form(method='POST', enctype='multipart/form-data')
-            p
-                input(type='file', name='csv_file', accept='. csv')
-            p
-                input(type='submit', value='Import')
+
+        h3 Import from csv file
+        form.form-inline(method='POST', enctype='multipart/form-data')
+            div.form-group
+                label(for='file')
+                input#file(type='file', name='csv_file', accept='. csv')
+            div.form-group
+                button.btn.btn-primary(type='submit') Import

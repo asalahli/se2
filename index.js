@@ -6,6 +6,7 @@ var auth = require('./auth.js');
 var settings = require('./settings.js');
 var deliverables = require('./deliverables.js');
 var students = require('./students.js');
+var converter = require('./converter.js')
 
 
 var getUploadLocation = function(deliverable, userid) {
@@ -60,6 +61,7 @@ var fs = require('fs');
 var multer  = require('multer');
 app.use(multer({
     dest: __dirname + '/uploads/.temp',
+    limits: { fileSize: 5242880 }
 }));
 
 var bodyParser = require('body-parser')
@@ -127,19 +129,11 @@ app.route('/logout')
     });
 
 
-var getLetterGrade = function(p){
-    // Shamelessly stolen from Wikipedia
-    if (86 <= p && p <= 100) return 'A';
-    else if (73 <= p && p <= 85) return 'B';
-    else if (67 <= p && p <= 72) return 'C+';
-    else if (60 <= p && p <= 66) return 'C';
-    else if (50 <= p && p <= 59) return 'C-';
-    else if (0 <= p && p <= 49) return 'F';
-    else return '';
-};
-
-
 app.get('/', auth.loginRequired, function(req, res) {
+    if (req.user.is_admin) {
+        return res.redirect('/admin')
+    }
+
     deliverables.getAllDeliverables(function(deliverables) {
         if (!req.user.group_id) {
             res.render('home', { deliverables: deliverables });
@@ -147,10 +141,10 @@ app.get('/', auth.loginRequired, function(req, res) {
         }
 
         db.get('SELECT rowid, name FROM groups WHERE rowid=?', [req.user.group_id], function(error, group) {
-            if (error) console.log(error);
+            if (error) console.error(error);
 
             db.all('SELECT userid, firstname, lastname FROM auth WHERE group_id=?', [group.rowid], function(error, members) {
-                if (error) console.log(error);
+                if (error) console.error(error);
 
                 var groupInfo = {
                     name: group.name,
@@ -212,7 +206,7 @@ app.route('/deliverable/:name/')
                         if (p)
                             components[i].grade = {
                                 percentage: p,
-                                letter: getLetterGrade(p)
+                                letter: converter.numericToLetter(p)
                             };
                     }
 
@@ -308,7 +302,7 @@ app.route('/group')
         else {
             var query = 'INSERT INTO groups (name) VALUES (?);';
             db.run(query, [groupName], function(error, result) {
-                if (error) console.log(error);
+                if (error) console.error(error);
 
                 var groupId = this.lastID;
 
@@ -323,7 +317,7 @@ app.route('/group')
                 query.push(';');
                 
                 db.run(query.join(' '), params, function(error, result) {
-                    if (error) console.log(error);
+                    if (error) console.error(error);
 
                     res.send({ error: false });
                 });
@@ -339,20 +333,28 @@ app.route('/group/rename')
 
         var query = 'UPDATE groups SET name = ? WHERE rowid = ?;';
         db.run(query, [new_name, group_id], function(error, result) {
-            if (error) console.log(error);
+            if (error) console.error(error);
 
             res.send({ error: false });
         });
     });
 
+/* Admin */
+
+app.get('/admin/permission-denied', function(req, res) {
+    res.render('admin/permission-denied')
+})
+
 app.route('/admin')
 
-    .get(function(req, res) {
+    .get(auth.loginRequired, auth.adminsOnly, function(req, res) {
         res.render('admin/base');
     });
 
 
 app.route('/admin/deliverables')
+
+    .all(auth.loginRequired, auth.adminsOnly)
 
     .get(function(req, res) {
        deliverables.getAllDeliverables(function(deliverables) {
@@ -371,6 +373,8 @@ app.route('/admin/deliverables')
 
 app.route('/admin/students')
 
+    .all(auth.loginRequired, auth.adminsOnly)
+
     .get(function(req, res) {
         students.getAllStudents(function(students) {
             res.render('admin/students', { students: students });
@@ -380,8 +384,6 @@ app.route('/admin/students')
     .post(function(req, res) {
         csv_data = CSV.parse(fs.readFileSync(req.files.csv_file.path, 'utf8'));
 
-        //console.log(csv_data);
-
         students.importFromCsv(csv_data, function() {
             res.redirect('/admin/students');
         });
@@ -389,6 +391,8 @@ app.route('/admin/students')
 
 
 app.route('/admin/groups')
+
+    .all(auth.loginRequired, auth.adminsOnly)
 
     .get(function(req, res) {
         var query = [
@@ -414,9 +418,9 @@ app.route('/admin/groups')
         var query2 = 'UPDATE auth SET group_id = NULL WHERE group_id = ?;';
 
         db.run(query1, [group_id], function(error, result) {
-            if (error) console.log("1", error);
+            if (error) console.error("1", error);
             db.run(query2, [group_id], function(error, result) {
-                if (error) console.log("2", error);
+                if (error) console.error("2", error);
 
                 res.send({ error: false });
             });
@@ -425,6 +429,8 @@ app.route('/admin/groups')
 
 
 app.route('/admin/grades')
+
+    .all(auth.loginRequired, auth.adminsOnly)
 
     .get(function(req, res) {
         deliverables.getAllDeliverables(function(deliverables) {
@@ -471,7 +477,6 @@ app.route('/admin/grades')
             }
 
             query.push('END TRANSACTION;');
-            //console.log(query.join('\n'));
 
             db.exec(query.join('\n'), function() {
                 res.redirect(req.url);
@@ -483,6 +488,8 @@ app.route('/admin/grades')
 
 
 app.route('/admin/grades/:deliverable/:component')
+
+    .all(auth.loginRequired, auth.adminsOnly)
 
     .get(function(req, res) {
         var deliverable_query = [
@@ -515,17 +522,18 @@ app.route('/admin/grades/:deliverable/:component')
         ].join('');
 
         db.get(deliverable_query, [req.params.deliverable], function(error, deliverable) {
-            if (error) console.log(error);
+            if (error) console.error(error);
 
             var submitter_list_query = deliverable.is_group ? group_list_query : student_list_query;
 
             db.all(submitter_list_query, [req.params.deliverable, req.params.component], function(error, grades) {
-                if (error) console.log(error);
+                if (error) console.error(error);
 
                 var context = {
                     deliverable: deliverable,
                     component_id: req.params.component,
                     grades: grades,
+                    converter: converter
                 };
 
                 res.render('admin/grades-entry', context);
@@ -540,6 +548,6 @@ var server = app.listen(settings.PORT, function() {
     var host = server.address().address;
     var port = server.address().port;
 
-    console.log('Example app listening at http://%s:%s', host, port);
+    console.log('Server started listening at http://%s:%s', host, port);
 
 });
