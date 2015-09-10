@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "repository": "https://github.com/asalahli/se2",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Azad Salahli",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^1.13.3",
     "express": "^4.12.4",
     "jade": "^1.11.0",
     "multer": "^0.1.8",
