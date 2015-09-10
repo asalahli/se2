@@ -37,6 +37,6 @@ block content
         form.form-inline(method='POST', enctype='multipart/form-data')
             div.form-group
                 label(for='file') JSON file
-                input#file(type='file', name='json_file')
+                input#file(type='file', name='json_file', accept='.json')
             div.form-group
                 button.btn.btn-primary(type='submit') Import
