@@ -363,6 +363,11 @@ app.route('/admin/deliverables')
     })
 
     .post(function(req, res) {
+        if (!req.files.json_file) {
+            res.redirect('/admin/deliverables');
+            return;
+        }
+
         json_data = JSON.parse(fs.readFileSync(req.files.json_file.path));
 
         deliverables.importFromJson(json_data, function(){
@@ -382,6 +387,11 @@ app.route('/admin/students')
     })
 
     .post(function(req, res) {
+        if (!req.files.csv_file) {
+            res.redirect('/admin/students');
+            return;
+        }
+
         csv_data = CSV.parse(fs.readFileSync(req.files.csv_file.path, 'utf8'));
 
         students.importFromCsv(csv_data, function() {
