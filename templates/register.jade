@@ -2,28 +2,34 @@ doctype html
 html
     head
         meta(charset="utf-8")
+        meta(http-equiv="X-UA-Compatible" content="IE=edge")
+        meta(name="viewport" content="width=device-width, initial-scale=1")
         title Advanced Software Engineering
+        link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css')
         link(type='text/css', href='/static/css/normalize.css')
     body
-        header
-            h1 Advanced Software Engineering
-        main
-            p Github username:
-                i= github_id
-                | &nbsp;
-                a(href='/logout') (not you?)
+    
+        center
 
-            h3 Sign up
+            header
+                h1 Advanced Software Engineering
+            main
+                p Github username:
+                    i= github_id
+                    | &nbsp;
+                    a(href='/logout') (not you?)
 
-            if error
-                p Invalid userid/student number.
+                h3 Sign up
 
-            form(method='POST', enctype='multipart/form-data')
-                p
-                    input(type='hidden', name='github_id', value=github_id)
-                p
-                    input(type='text', name='userid' placeholder='userid')
-                p
-                    input(type='password', name='student_number' placeholder='student number')
-                p
-                    input(type='submit', value='Sign up')
+                if error
+                    p Invalid userid/student number.
+
+                form(method='POST', enctype='multipart/form-data')
+                    p
+                        input(type='hidden', name='github_id', value=github_id)
+                    p
+                        input(type='text', name='userid' placeholder='userid')
+                    p
+                        input(type='password', name='student_number' placeholder='student number')
+                    p
+                        input(type='submit', value='Sign up')
