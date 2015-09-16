@@ -1,0 +1,150 @@
+[
+  {
+    "shortname": "impressions",
+    "name": "SE Impressions",
+    "weight": "0",
+    "opens": "September 2, 2015",
+    "closes": "September 9, 2015",
+    "description": "Provide a two paragraph description reflecting on your software engineering experiences.<br/><br/>First paragraph:\n‣ Your name and a high level overview of development experience. Include a sentence about what you would like from this course.\n\nSecond paragraph:\n‣ A description of how you have encountered architecture/testing/static analysis/code review in your experience.\n",
+
+    "components": [
+      {
+        "type": "text",
+        "description": "This deliverable was submitted on paper this term.",
+        "weight": "0"
+      }
+    ]
+  },
+
+  {
+    "shortname": "groups",
+    "name": "Project Groups",
+    "weight": "0",
+    "opens": "September 9, 2015",
+    "closes": "September 21, 2015",
+    "description": "Specify your project groups in this system.",
+
+    "components": [
+      {
+        "type": "activity",
+        "description": "",
+        "weight": "0"
+      }
+    ]
+  },
+
+  {
+    "shortname": "d1",
+    "name": "D1: Proposal Presentations",
+    "weight": "0.05",
+    "opens": "September 21, 2015",
+    "closes": "September 28, 2015",
+    "description": "Describe your project.",
+
+    "components": [
+      {
+        "type": "document",
+        "description": "2 page document that describes what you will be building this term. Details to follow.",
+        "weight": "0.75"
+      },
+      {
+        "type": "presentation",
+        "description": "Three-minute in class project pitch.",
+        "weight": "0.25"
+      }
+    ]
+  },
+
+  {
+    "shortname": "d2",
+    "name": "D2: Project Architecture",
+    "weight": "0",
+    "opens": "October 12, 2015",
+    "closes": "November 2, 2015",
+    "description": "Describe and justify your project architecture.",
+
+    "components": [
+	{
+        "type": "document",
+        "description": "Details to follow.",
+        "weight": ".5"
+      },      
+	{
+        "type": "presentation",
+        "description": "Details to follow.",
+        "weight": ".5"
+      }
+    ]
+  },
+
+  {
+    "shortname": "d3",
+    "name": "D3: Prototype Demo",
+    "weight": "0.05",
+    "opens": "October 12, 2015",
+    "closes": "November 2, 2015",
+    "description": "Demonstrate your early progress. Details to follow.",
+
+    "components": [
+      {
+        "type": "document",
+        "description": "Details to follow.",
+        "weight": "0.25"
+      },
+      {
+        "type": "presentation",
+        "description": "Details to follow.",
+        "weight": "0.75"
+      }
+    ]
+  },
+
+{
+    "shortname": "d4",
+    "name": "D4: Project Reflection",
+    "weight": "0.05",
+    "opens": "November 2, 2015",
+    "closes": "November 30, 2015",
+    "description": "Reflect upon your project, describe your test strategy, etc. Details to follow.",
+
+    "components": [
+      {
+        "type": "document",
+        "description": "Details to follow.",
+        "weight": "0.5"
+      },
+      {
+        "type": "presentation",
+        "description": "Details to follow.",
+        "weight": "0.5"
+      }
+    ]
+  },
+
+{
+    "shortname": "d5",
+    "name": "D5: Final Demo",
+    "weight": "0.05",
+    "opens": "November 2, 2015",
+    "closes": "November 30, 2015",
+    "description": "Final project demonstrations. Details to follow.",
+
+    "components": [
+      {
+        "type": "document",
+        "description": "Details to follow.",
+        "weight": "0.25"
+      },
+      {
+        "type": "link",
+        "description": "Details to follow.",
+        "weight": "0.75"
+      },
+      {
+        "type": "presentation",
+        "description": "Details to follow.",
+        "weight": "0.75"
+      }
+    ]
+  }
+]
